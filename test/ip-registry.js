@@ -14,12 +14,7 @@ contract('IpRegistry', function(accounts) {
     var firstAccount = accounts[0];
     var reg = IpRegistry.deployed();
 
-    reg.register.call(firstIp, { from: firstAccount })
-    .then(function() {
-      return new Promise(function(res, rej) {
-        setTimeout(res, 500);
-      })
-    })
+    reg.register(firstIp, { from: firstAccount })
     .then(function() {
       return reg.checkAuthor.call(firstIp, { from: accounts[0] })
     })
@@ -35,10 +30,10 @@ contract('IpRegistry', function(accounts) {
     var firstAccount = accounts[0];
     var secondAccount = accounts[1];
 
-    reg.register.call(firstIp, { from: firstAccount })
+    reg.register(firstIp, { from: firstAccount })
 
     .then(function(address) {
-      return reg.register.call(firstIp, { from: secondAccount });
+      return reg.register(firstIp, { from: secondAccount });
     })
     .then(function() {
       return reg.checkAuthor.call(firstIp, { from: firstAccount });
