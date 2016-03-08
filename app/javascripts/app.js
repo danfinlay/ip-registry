@@ -1,6 +1,35 @@
 var accounts;
 var account;
-var balance;
+
+function  checkRegistration() {
+  var reg = IpRegistry.deployed();
+  var idea = getHash();
+  reg.checkAuthor.call(idea, { from: accounts[0] })
+  .then(function(author) {
+    if (author.match(/0x[0]+/)) {
+      alert('That idea has not been registered yet!');
+    } else {
+      alert('Sorry, that idea has been registered already by ' + author);
+    }
+  });
+}
+
+function register() {
+  var reg = IpRegistry.deployed();
+  var idea = getHash();
+  reg.register(idea, { from: accounts[0] })
+  .then(function(success) {
+    if (success) {
+      alert('You are the new proud owner of the idea '+idea);
+    } else {
+      alert('Sorry, that idea has been registered already');
+    }
+  });
+}
+
+function getHash() {
+  return document.getElementById('hash').value
+}
 
 function setStatus(message) {
   var status = document.getElementById("status");
@@ -50,7 +79,5 @@ window.onload = function() {
 
     accounts = accs;
     account = accounts[0];
-
-    refreshBalance();
   });
 }
