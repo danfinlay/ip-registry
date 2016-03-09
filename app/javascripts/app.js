@@ -24,7 +24,7 @@ function clearNote() {
 function register() {
   var reg = IpRegistry.deployed();
   var idea = getHash();
-  reg.register.call(idea, { from: accounts[0] })
+  reg.register(idea, { from: accounts[0] })
   .then(function(success) {
     if (success) {
       note('You are the new proud owner of the idea '+idea, 'green');
