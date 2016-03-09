@@ -48,3 +48,12 @@ h3 {
 #balance {
   color: black;
 }
+
+.invisible {
+  display: none;
+}
+.error {
+  color: red;
+}
+.main {
+}

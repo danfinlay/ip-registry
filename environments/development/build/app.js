@@ -5417,11 +5417,11 @@ var factory = function factory(Pudding) {
   IpRegistry.abi = [{ "constant": false, "inputs": [{ "name": "h", "type": "string" }], "name": "checkAuthor", "outputs": [{ "name": "addr", "type": "address" }], "type": "function" }, { "constant": false, "inputs": [{ "name": "h", "type": "string" }], "name": "register", "outputs": [{ "name": "success", "type": "bool" }], "type": "function" }];
   IpRegistry.binary = "60606040526101df806100126000396000f3606060405260e060020a6000350463ac7207e68114610026578063f2c298be146100b6575b005b60206004803580820135601f8101849004909302608090810160405260608481526101ab9460249391929184019181908382808284375094965050505050505060405181516000918291849190819060809080838184896004600f60036020601f8701040201f15090910193845250506040519182900360200190912054600160a060020a03169150505b919050565b60206004803580820135601f8101849004909302608090810160405260608481526101c89460249391929184019181908382808284375094965050505050505060405181516000918291849190819060809080838184896004600f60036020601f8701040201f15090910193845250506040519182900360200190912054600160a060020a031682141590506101da576040518251339183918591908190608090808381848960046020601f850104600302600f01f150909101938452505060405191829003602001909120805473ffffffffffffffffffffffffffffffffffffffff191690921790915550600190506100b1565b60408051600160a060020a03929092168252519081900360200190f35b60408051918252519081900360200190f35b6100b156";
 
-  if ("0x7417cbe2c8819fb0563888d12019b4f1d8749926" != "") {
-    IpRegistry.address = "0x7417cbe2c8819fb0563888d12019b4f1d8749926";
+  if ("0xae88f6ebb79c45d799a62c5395dfa5435ba9cb10" != "") {
+    IpRegistry.address = "0xae88f6ebb79c45d799a62c5395dfa5435ba9cb10";
 
     // Backward compatibility; Deprecated.
-    IpRegistry.deployed_address = "0x7417cbe2c8819fb0563888d12019b4f1d8749926";
+    IpRegistry.deployed_address = "0xae88f6ebb79c45d799a62c5395dfa5435ba9cb10";
   }
 
   IpRegistry.generated_with = "1.0.3";
@@ -5453,80 +5453,101 @@ function  checkRegistration() {
   var idea = getHash();
   reg.checkAuthor.call(idea, { from: accounts[0] })
   .then(function(author) {
-    if (author.match(/0x[0]+/)) {
-      alert('That idea has not been registered yet!');
+    if (author === '0x' || author.match(/0x0+$/)) {
+      note('That idea has not been registered yet!', 'green');
     } else {
-      alert('Sorry, that idea has been registered already by ' + author);
+      note('Sorry, that idea has been registered already by ' + author, 'red');
     }
+  })
+  .catch(function(reason) {
+    alert(reason);
   });
+}
+
+function clearNote() {
+  note('', 'black');
 }
 
 function register() {
   var reg = IpRegistry.deployed();
   var idea = getHash();
-  reg.register(idea, { from: accounts[0] })
+  reg.register.call(idea, { from: accounts[0] })
   .then(function(success) {
     if (success) {
-      alert('You are the new proud owner of the idea '+idea);
+      note('You are the new proud owner of the idea '+idea, 'green');
     } else {
-      alert('Sorry, that idea has been registered already');
+      note('Sorry, that idea has been registered already.', 'red');
     }
+  })
+  .catch(function(reason) {
+    note("Fails because " + reason);
   });
+}
+
+function note(text, color) {
+  var noteEl = document.querySelector('.note')
+  noteEl.innerText = text
+  if (color) {
+    noteEl.style.color = color;
+  }
 }
 
 function getHash() {
   return document.getElementById('hash').value
 }
 
-function setStatus(message) {
-  var status = document.getElementById("status");
-  status.innerHTML = message;
-};
+function displayError(err) {
+  var errorEl = document.querySelector('.error')
+  errorEl.innerText = err
+  showSection('error')
+}
 
-function refreshBalance() {
-  var meta = MetaCoin.deployed();
+function showSection(elClass) {
+  var errorEl = document.querySelector('.error')
+  var loadingEl = document.querySelector('.loading')
+  var mainEl = document.querySelector('.main')
 
-  meta.getBalance.call(account, {from: account}).then(function(value) {
-    var balance_element = document.getElementById("balance");
-    balance_element.innerHTML = value.valueOf();
-  }).catch(function(e) {
-    console.log(e);
-    setStatus("Error getting balance; see log.");
-  });
-};
+  var map = {
+    error: errorEl,
+    loading: loadingEl,
+    main: mainEl,
+  }
 
-function sendCoin() {
-  var meta = MetaCoin.deployed();
+  for(var name in map) {
+    var el = map[name]
+    if (name === elClass) {
+      el.classList.remove('invisible')
+    } else {
+      el.classList.add('invisible')
+    }
+  }
+}
 
-  var amount = parseInt(document.getElementById("amount").value);
-  var receiver = document.getElementById("receiver").value;
 
-  setStatus("Initiating transaction... (please wait)");
-
-  meta.sendCoin(receiver, amount, {from: account}).then(function() {
-    setStatus("Transaction complete!");
-    refreshBalance();
-  }).catch(function(e) {
-    console.log(e);
-    setStatus("Error sending coin; see log.");
-  });
-};
 
 window.onload = function() {
+  showSection('loading')
   web3.eth.getAccounts(function(err, accs) {
     if (err != null) {
-      alert("There was an error fetching your accounts.");
+      displayError("There was a problem accessing your Ethereum wallet. Are you using an Ethereum-compatible client, like Metamask or Mist?")
       return;
     }
 
     if (accs.length == 0) {
-      alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+      displayError("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
       return;
     }
 
     accounts = accs;
     account = accounts[0];
+    showAccount();
+    showSection('main')
   });
+}
+
+function showAccount() {
+  var accountEl = document.querySelector('.account')
+  accountEl.innerText = account;
 }
 ;
 

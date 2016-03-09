@@ -6,78 +6,99 @@ function  checkRegistration() {
   var idea = getHash();
   reg.checkAuthor.call(idea, { from: accounts[0] })
   .then(function(author) {
-    if (author.match(/0x[0]+/)) {
-      alert('That idea has not been registered yet!');
+    if (author === '0x' || author.match(/0x0+$/)) {
+      note('That idea has not been registered yet!', 'green');
     } else {
-      alert('Sorry, that idea has been registered already by ' + author);
+      note('Sorry, that idea has been registered already by ' + author, 'red');
     }
+  })
+  .catch(function(reason) {
+    alert(reason);
   });
+}
+
+function clearNote() {
+  note('', 'black');
 }
 
 function register() {
   var reg = IpRegistry.deployed();
   var idea = getHash();
-  reg.register(idea, { from: accounts[0] })
+  reg.register.call(idea, { from: accounts[0] })
   .then(function(success) {
     if (success) {
-      alert('You are the new proud owner of the idea '+idea);
+      note('You are the new proud owner of the idea '+idea, 'green');
     } else {
-      alert('Sorry, that idea has been registered already');
+      note('Sorry, that idea has been registered already.', 'red');
     }
+  })
+  .catch(function(reason) {
+    note("Fails because " + reason);
   });
+}
+
+function note(text, color) {
+  var noteEl = document.querySelector('.note')
+  noteEl.innerText = text
+  if (color) {
+    noteEl.style.color = color;
+  }
 }
 
 function getHash() {
   return document.getElementById('hash').value
 }
 
-function setStatus(message) {
-  var status = document.getElementById("status");
-  status.innerHTML = message;
-};
+function displayError(err) {
+  var errorEl = document.querySelector('.error')
+  errorEl.innerText = err
+  showSection('error')
+}
 
-function refreshBalance() {
-  var meta = MetaCoin.deployed();
+function showSection(elClass) {
+  var errorEl = document.querySelector('.error')
+  var loadingEl = document.querySelector('.loading')
+  var mainEl = document.querySelector('.main')
 
-  meta.getBalance.call(account, {from: account}).then(function(value) {
-    var balance_element = document.getElementById("balance");
-    balance_element.innerHTML = value.valueOf();
-  }).catch(function(e) {
-    console.log(e);
-    setStatus("Error getting balance; see log.");
-  });
-};
+  var map = {
+    error: errorEl,
+    loading: loadingEl,
+    main: mainEl,
+  }
 
-function sendCoin() {
-  var meta = MetaCoin.deployed();
+  for(var name in map) {
+    var el = map[name]
+    if (name === elClass) {
+      el.classList.remove('invisible')
+    } else {
+      el.classList.add('invisible')
+    }
+  }
+}
 
-  var amount = parseInt(document.getElementById("amount").value);
-  var receiver = document.getElementById("receiver").value;
 
-  setStatus("Initiating transaction... (please wait)");
-
-  meta.sendCoin(receiver, amount, {from: account}).then(function() {
-    setStatus("Transaction complete!");
-    refreshBalance();
-  }).catch(function(e) {
-    console.log(e);
-    setStatus("Error sending coin; see log.");
-  });
-};
 
 window.onload = function() {
+  showSection('loading')
   web3.eth.getAccounts(function(err, accs) {
     if (err != null) {
-      alert("There was an error fetching your accounts.");
+      displayError("There was a problem accessing your Ethereum wallet. Are you using an Ethereum-compatible client, like Metamask or Mist?")
       return;
     }
 
     if (accs.length == 0) {
-      alert("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
+      displayError("Couldn't get any accounts! Make sure your Ethereum client is configured correctly.");
       return;
     }
 
     accounts = accs;
     account = accounts[0];
+    showAccount();
+    showSection('main')
   });
+}
+
+function showAccount() {
+  var accountEl = document.querySelector('.account')
+  accountEl.innerText = account;
 }
