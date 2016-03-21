@@ -1,12 +1,9 @@
 contract IpRegistry {
   mapping (string => address) ideas;
 
-  function register(string h) returns(bool success){
+  function register(string h) {
     if (ideas[h] == 0x0) {
       ideas[h] = msg.sender;
-      return true;
-    } else {
-      return false;
     }
   }
 
